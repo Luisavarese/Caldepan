@@ -1,0 +1,62 @@
+{
+  "entities": {
+    "SiteConfig": {
+      "title": "SiteConfig",
+      "description": "Configuration for the landing page",
+      "type": "object",
+      "properties": {
+        "logoText": { "type": "string" },
+        "logoImage": { "type": "string" },
+        "heroImage": { "type": "string" },
+        "featureImage": { "type": "string" },
+        "carouselImages": { "type": "array", "items": { "type": "string" } },
+        "videos": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "Order": {
+      "title": "Order",
+      "description": "A customer order",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "clientId": { "type": "string" },
+        "clientName": { "type": "string" },
+        "contact": { "type": "string" },
+        "deadline": { "type": "string" },
+        "value": { "type": "number" },
+        "responsible": { "type": "string" },
+        "address": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" }
+      }
+    },
+    "Client": {
+      "title": "Client",
+      "description": "A customer",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "contact": { "type": "string" },
+        "email": { "type": "string" },
+        "address": { "type": "string" },
+        "totalOrders": { "type": "number" },
+        "ticketMedio": { "type": "number" }
+      }
+    }
+  },
+  "firestore": {
+    "/config/main": {
+      "schema": "SiteConfig",
+      "description": "Main site configuration"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Orders"
+    },
+    "/clients/{clientId}": {
+      "schema": "Client",
+      "description": "Clients"
+    }
+  }
+}
