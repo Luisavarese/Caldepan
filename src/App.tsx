@@ -2200,6 +2200,7 @@ function Dashboard({ siteConfig, setSiteConfig }: { siteConfig: any, setSiteConf
   const [clients, setClients] = useState<any[]>(mockClients);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const unsubAuth = onAuthStateChanged(auth, (currentUser) => {
@@ -2389,11 +2390,13 @@ function Dashboard({ siteConfig, setSiteConfig }: { siteConfig: any, setSiteConf
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden">
+      <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
         {/* Topbar */}
         <header className="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-6 flex-shrink-0">
           <div className="flex items-center gap-4 md:hidden">
-            <Menu className="w-6 h-6 text-slate-600" />
+            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+              {isMobileMenuOpen ? <X className="w-6 h-6 text-slate-600" /> : <Menu className="w-6 h-6 text-slate-600" />}
+            </button>
             {siteConfig.logoImage ? (
               <img src={siteConfig.logoImage} alt={siteConfig.logoText} className="max-h-8 object-contain" />
             ) : (
@@ -2412,6 +2415,60 @@ function Dashboard({ siteConfig, setSiteConfig }: { siteConfig: any, setSiteConf
             </div>
           </div>
         </header>
+
+        {/* Mobile Menu */}
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="absolute top-16 left-0 right-0 bg-[#2c417d] text-white z-50 md:hidden border-b border-blue-500/30 shadow-xl"
+            >
+              <nav className="flex flex-col p-4 space-y-2">
+                {navItems.map(item => (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      setActiveTab(item.id);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${
+                      activeTab === item.id 
+                        ? 'bg-blue-700 text-white shadow-inner' 
+                        : 'text-blue-200 hover:text-white hover:bg-blue-700/50'
+                    }`}
+                  >
+                    <item.icon className="w-5 h-5" />
+                    {item.label}
+                  </button>
+                ))}
+                <div className="pt-4 mt-4 border-t border-blue-500">
+                  <button 
+                    onClick={() => {
+                      setActiveTab('configuracoes');
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${
+                      activeTab === 'configuracoes' 
+                        ? 'bg-blue-700 text-white shadow-inner' 
+                        : 'text-blue-200 hover:text-white hover:bg-blue-700/50'
+                    }`}
+                  >
+                    <Settings className="w-5 h-5" />
+                    Configurações
+                  </button>
+                </div>
+                <div className="pt-4 mt-4 border-t border-blue-500">
+                  <button onClick={() => { signOut(auth); navigate('/'); }} className="flex items-center gap-3 text-blue-200 hover:text-white w-full px-4 py-3 transition-colors">
+                    <LogOut className="w-5 h-5" />
+                    Sair do Sistema
+                  </button>
+                </div>
+              </nav>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Dashboard Content Area */}
         <div className="flex-1 overflow-auto p-6">
