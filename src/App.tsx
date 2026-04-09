@@ -313,6 +313,24 @@ function LandingPage({ siteConfig }: { siteConfig: any }) {
         </div>
       </section>
 
+      {/* Sobre a Caldepan */}
+      <section id="sobre" className="py-20 bg-slate-50">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-3xl md:text-4xl font-bold mb-8 text-slate-900">Sobre a Caldepan</h2>
+            <p className="text-lg text-slate-600 leading-relaxed mb-6">
+              A CALDEPAN foi fundada em 2020 como consultoria de vendas de equipamentos, nossa empresa destaca-se pelo alto nível de aproveitamento de seus colaboradores e emprego de tecnologia de ponta, na fabricação de equipamentos para cozinhas profissionais.
+            </p>
+            <p className="text-lg text-slate-600 leading-relaxed mb-6">
+              Oferecemos o que há de melhor e mais moderno no setor de equipamentos em aço inox para cozinhas industriais e profissionais, disponibilizando completa infraestrutura para restaurantes, bares, grandes redes de fast-food, catering, equipamentos hospitalares e órgãos governamentais.
+            </p>
+            <p className="text-lg text-slate-600 leading-relaxed">
+              Agradeceríamos poder agendar um contato pessoal, oportunidade em que poderemos melhor esclarecer sobre nossa empresa, bem como nossos produtos.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* Problema + Solução */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
@@ -415,12 +433,12 @@ function LandingPage({ siteConfig }: { siteConfig: any }) {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
-              { icon: Wrench, title: "Equipamentos em Inox", desc: "Bancadas, pias, prateleiras e estantes sob medida com alta durabilidade." },
-              { icon: ThermometerSnowflake, title: "Refrigeração Industrial", desc: "Câmaras frias, balcões refrigerados e freezers de alta performance." },
-              { icon: Flame, title: "Equipamentos de Cocção", desc: "Fogões industriais, fornos, chapas e fritadeiras profissionais." },
-              { icon: Wind, title: "Sistemas de Exaustão", desc: "Coifas e tubulações projetadas para manter o ambiente limpo e seguro." },
-              { icon: UtensilsCrossed, title: "Mobiliário Profissional", desc: "Estruturas completas para organização e fluxo de trabalho." },
-              { icon: ChefHat, title: "Projetos Completos", desc: "Do desenho da planta até a instalação final dos equipamentos." },
+              { id: 'inox', icon: Wrench, title: "Equipamentos em Inox", desc: "Bancadas, pias, prateleiras e estantes sob medida com alta durabilidade." },
+              { id: 'refrigeracao', icon: ThermometerSnowflake, title: "Refrigeração Industrial", desc: "Câmaras frias, balcões refrigerados e freezers de alta performance." },
+              { id: 'coccao', icon: Flame, title: "Equipamentos de Cocção", desc: "Fogões industriais, fornos, chapas e fritadeiras profissionais." },
+              { id: 'exaustao', icon: Wind, title: "Sistemas de Exaustão", desc: "Coifas e tubulações projetadas para manter o ambiente limpo e seguro." },
+              { id: 'mobiliario', icon: UtensilsCrossed, title: "Mobiliário Profissional", desc: "Estruturas completas para organização e fluxo de trabalho." },
+              { id: 'projetos', icon: ChefHat, title: "Projetos Completos", desc: "Do desenho da planta até a instalação final dos equipamentos." },
             ].map((servico, i) => (
               <motion.div 
                 key={i}
@@ -428,13 +446,33 @@ function LandingPage({ siteConfig }: { siteConfig: any }) {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="bg-white p-8 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow"
+                className="group perspective-1000 h-[280px]"
               >
-                <div className="w-14 h-14 bg-blue-600 rounded-lg flex items-center justify-center text-white mb-6">
-                  <servico.icon className="w-7 h-7" />
+                <div className="relative w-full h-full transition-transform duration-500 transform-style-3d group-hover:rotate-y-180 cursor-pointer">
+                  {/* Front */}
+                  <div className="absolute inset-0 backface-hidden bg-white p-8 rounded-xl shadow-sm border border-slate-100 flex flex-col justify-center">
+                    <div className="w-14 h-14 bg-blue-600 rounded-lg flex items-center justify-center text-white mb-6">
+                      <servico.icon className="w-7 h-7" />
+                    </div>
+                    <h3 className="text-xl font-bold mb-3 text-slate-900">{servico.title}</h3>
+                    <p className="text-slate-600 leading-relaxed">{servico.desc}</p>
+                  </div>
+                  
+                  {/* Back */}
+                  <div className="absolute inset-0 backface-hidden rotate-y-180 bg-blue-900 rounded-xl shadow-md overflow-hidden flex items-center justify-center">
+                    {siteConfig.solutionImages?.[servico.id] ? (
+                      <img src={siteConfig.solutionImages[servico.id]} alt={servico.title} className="w-full h-full object-cover opacity-80" />
+                    ) : (
+                      <div className="text-white text-center p-6">
+                        <servico.icon className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        <p className="font-semibold">{servico.title}</p>
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-blue-900/80 to-transparent flex items-end p-6">
+                      <span className="text-white font-bold text-lg">{servico.title}</span>
+                    </div>
+                  </div>
                 </div>
-                <h3 className="text-xl font-bold mb-3 text-slate-900">{servico.title}</h3>
-                <p className="text-slate-600 leading-relaxed">{servico.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -1792,6 +1830,58 @@ function TabConfiguracoes({ siteConfig, setSiteConfig }: { siteConfig: any, setS
     }
   };
 
+  const handleSolutionImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, solutionId: string) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploading(true);
+    try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+            const MAX_DIMENSION = 600;
+
+            if (width > height && width > MAX_DIMENSION) {
+              height *= MAX_DIMENSION / width;
+              width = MAX_DIMENSION;
+            } else if (height > MAX_DIMENSION) {
+              width *= MAX_DIMENSION / height;
+              height = MAX_DIMENSION;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx?.drawImage(img, 0, 0, width, height);
+            
+            resolve(canvas.toDataURL('image/jpeg', 0.6));
+          };
+          img.onerror = reject;
+          img.src = reader.result as string;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      
+      setConfig((prev: any) => ({
+        ...prev,
+        solutionImages: {
+          ...(prev.solutionImages || {}),
+          [solutionId]: dataUrl
+        }
+      }));
+    } catch (error) {
+      console.error("Upload error:", error);
+      alert("Erro ao processar imagem. Tente novamente.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const handleClientLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -1947,6 +2037,40 @@ function TabConfiguracoes({ siteConfig, setSiteConfig }: { siteConfig: any, setS
                 >
                   <X className="w-4 h-4" />
                 </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="border-t border-slate-100 pt-6">
+          <label className="block text-sm font-bold text-slate-700 mb-2">Imagens das Soluções (Cards)</label>
+          <p className="text-xs text-slate-500 mb-4">Essas imagens aparecerão quando o usuário passar o mouse sobre os cards na seção "Nossas Soluções".</p>
+          
+          <div className="grid sm:grid-cols-2 gap-6">
+            {[
+              { id: 'inox', title: "Equipamentos em Inox" },
+              { id: 'refrigeracao', title: "Refrigeração Industrial" },
+              { id: 'coccao', title: "Equipamentos de Cocção" },
+              { id: 'exaustao', title: "Sistemas de Exaustão" },
+              { id: 'mobiliario', title: "Mobiliário Profissional" },
+              { id: 'projetos', title: "Projetos Completos" },
+            ].map(sol => (
+              <div key={sol.id} className="border border-slate-200 rounded-lg p-4 bg-slate-50">
+                <label className="block text-sm font-bold text-slate-700 mb-2">{sol.title}</label>
+                <input 
+                  type="file" 
+                  accept="image/*"
+                  onChange={e => handleSolutionImageUpload(e, sol.id)} 
+                  className="w-full px-3 py-1.5 text-sm border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none mb-3 bg-white" 
+                  disabled={isUploading}
+                />
+                <div className="aspect-video w-full rounded-md overflow-hidden border border-slate-200 bg-slate-200 flex items-center justify-center">
+                  {config.solutionImages?.[sol.id] ? (
+                    <img src={config.solutionImages[sol.id]} alt={sol.title} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-xs text-slate-400">Sem imagem</span>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -2313,7 +2437,8 @@ function App() {
       "https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=800",
       "https://images.unsplash.com/photo-1556910103-1c02745a872f?auto=format&fit=crop&q=80&w=800"
     ],
-    videos: []
+    videos: [],
+    solutionImages: {}
   });
   const [loading, setLoading] = useState(true);
 
