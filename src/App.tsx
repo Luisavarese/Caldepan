@@ -121,6 +121,7 @@ function LandingPage({ siteConfig }: { siteConfig: any }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [currentVideoSlide, setCurrentVideoSlide] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -141,13 +142,23 @@ function LandingPage({ siteConfig }: { siteConfig: any }) {
     setCurrentSlide((prev) => (prev - 1 + siteConfig.carouselImages.length) % siteConfig.carouselImages.length);
   };
 
+  const nextVideoSlide = () => {
+    if (!siteConfig.videos || siteConfig.videos.length === 0) return;
+    setCurrentVideoSlide((prev) => (prev + 1) % siteConfig.videos.length);
+  };
+
+  const prevVideoSlide = () => {
+    if (!siteConfig.videos || siteConfig.videos.length === 0) return;
+    setCurrentVideoSlide((prev) => (prev - 1 + siteConfig.videos.length) % siteConfig.videos.length);
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       
-      if (result.user.email !== 'luis.silva.avarese@gmail.com') {
+      if (result.user.email !== 'luis.silva.avarese@gmail.com' && result.user.email !== 'caldepancozinhas@gmail.com') {
         await signOut(auth);
         alert("Acesso negado. Apenas o administrador pode acessar esta área.");
         return;
@@ -155,9 +166,11 @@ function LandingPage({ siteConfig }: { siteConfig: any }) {
 
       setIsLoginModalOpen(false);
       navigate('/dashboard');
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login Error: ", error);
-      alert("Erro ao fazer login. Tente novamente.");
+      if (error.code !== 'auth/cancelled-popup-request' && error.code !== 'auth/popup-closed-by-user') {
+        alert("Erro ao fazer login. Tente novamente.");
+      }
     }
   };
 
@@ -173,9 +186,12 @@ function LandingPage({ siteConfig }: { siteConfig: any }) {
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-8 font-medium text-sm">
             <a href="#solucoes" className="hover:text-blue-400 transition-colors">Soluções</a>
+            <a href="#projetos" className="hover:text-blue-400 transition-colors">Fotos</a>
+            <a href="#video" className="hover:text-blue-400 transition-colors">Vídeos</a>
             <a href="#beneficios" className="hover:text-blue-400 transition-colors">Benefícios</a>
             <a href="#como-funciona" className="hover:text-blue-400 transition-colors">Como Funciona</a>
             <a href="#faq" className="hover:text-blue-400 transition-colors">FAQ</a>
+            <a href="#sobre" className="hover:text-blue-400 transition-colors">Sobre a Caldepan</a>
             <a 
               href="https://www.instagram.com/caldepancozinhas/"
               target="_blank"
@@ -223,9 +239,12 @@ function LandingPage({ siteConfig }: { siteConfig: any }) {
             >
               <nav className="flex flex-col p-4 gap-4">
                 <a href="#solucoes" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-300 hover:text-white">Soluções</a>
+                <a href="#projetos" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-300 hover:text-white">Fotos</a>
+                <a href="#video" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-300 hover:text-white">Vídeos</a>
                 <a href="#beneficios" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-300 hover:text-white">Benefícios</a>
                 <a href="#como-funciona" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-300 hover:text-white">Como Funciona</a>
                 <a href="#faq" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-300 hover:text-white">FAQ</a>
+                <a href="#sobre" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-300 hover:text-white">Sobre a Caldepan</a>
                 <a 
                   href="https://www.instagram.com/caldepancozinhas/"
                   target="_blank"
@@ -309,24 +328,6 @@ function LandingPage({ siteConfig }: { siteConfig: any }) {
                 </a>
               </div>
             </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* Sobre a Caldepan */}
-      <section id="sobre" className="py-20 bg-slate-50">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-8 text-slate-900">Sobre a Caldepan</h2>
-            <p className="text-lg text-slate-600 leading-relaxed mb-6">
-              A CALDEPAN foi fundada em 2020 como consultoria de vendas de equipamentos, nossa empresa destaca-se pelo alto nível de aproveitamento de seus colaboradores e emprego de tecnologia de ponta, na fabricação de equipamentos para cozinhas profissionais.
-            </p>
-            <p className="text-lg text-slate-600 leading-relaxed mb-6">
-              Oferecemos o que há de melhor e mais moderno no setor de equipamentos em aço inox para cozinhas industriais e profissionais, disponibilizando completa infraestrutura para restaurantes, bares, grandes redes de fast-food, catering, equipamentos hospitalares e órgãos governamentais.
-            </p>
-            <p className="text-lg text-slate-600 leading-relaxed">
-              Agradeceríamos poder agendar um contato pessoal, oportunidade em que poderemos melhor esclarecer sobre nossa empresa, bem como nossos produtos.
-            </p>
           </div>
         </div>
       </section>
@@ -446,33 +447,13 @@ function LandingPage({ siteConfig }: { siteConfig: any }) {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="group perspective-1000 h-[280px]"
+                className="bg-white p-8 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow"
               >
-                <div className="relative w-full h-full transition-transform duration-500 transform-style-3d group-hover:rotate-y-180 cursor-pointer">
-                  {/* Front */}
-                  <div className="absolute inset-0 backface-hidden bg-white p-8 rounded-xl shadow-sm border border-slate-100 flex flex-col justify-center">
-                    <div className="w-14 h-14 bg-blue-600 rounded-lg flex items-center justify-center text-white mb-6">
-                      <servico.icon className="w-7 h-7" />
-                    </div>
-                    <h3 className="text-xl font-bold mb-3 text-slate-900">{servico.title}</h3>
-                    <p className="text-slate-600 leading-relaxed">{servico.desc}</p>
-                  </div>
-                  
-                  {/* Back */}
-                  <div className="absolute inset-0 backface-hidden rotate-y-180 bg-blue-900 rounded-xl shadow-md overflow-hidden flex items-center justify-center">
-                    {siteConfig.solutionImages?.[servico.id] ? (
-                      <img src={siteConfig.solutionImages[servico.id]} alt={servico.title} className="w-full h-full object-cover opacity-80" />
-                    ) : (
-                      <div className="text-white text-center p-6">
-                        <servico.icon className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                        <p className="font-semibold">{servico.title}</p>
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-blue-900/80 to-transparent flex items-end p-6">
-                      <span className="text-white font-bold text-lg">{servico.title}</span>
-                    </div>
-                  </div>
+                <div className="w-14 h-14 bg-blue-600 rounded-lg flex items-center justify-center text-white mb-6">
+                  <servico.icon className="w-7 h-7" />
                 </div>
+                <h3 className="text-xl font-bold mb-3 text-slate-900">{servico.title}</h3>
+                <p className="text-slate-600 leading-relaxed">{servico.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -528,10 +509,10 @@ function LandingPage({ siteConfig }: { siteConfig: any }) {
 
       {/* Galeria de Fotos (Carrossel) */}
       {siteConfig.carouselImages && siteConfig.carouselImages.length > 0 && (
-        <section className="py-20 bg-slate-50 overflow-hidden">
+        <section id="projetos" className="py-20 bg-slate-50 overflow-hidden">
           <div className="container mx-auto px-4">
             <div className="text-center max-w-3xl mx-auto mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-slate-900">Nossos Projetos</h2>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-slate-900">Fotos</h2>
               <p className="text-lg text-slate-600">
                 Confira algumas das cozinhas industriais que já entregamos.
               </p>
@@ -576,37 +557,76 @@ function LandingPage({ siteConfig }: { siteConfig: any }) {
 
       {/* Galeria de Vídeos */}
       {siteConfig.videos && siteConfig.videos.length > 0 && (
-        <section className="py-20 bg-white">
+        <section id="video" className="py-20 bg-white">
           <div className="container mx-auto px-4">
             <div className="text-center max-w-3xl mx-auto mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-slate-900">Vídeo em Ação</h2>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-slate-900">Vídeos</h2>
               <p className="text-lg text-slate-600">
                 Veja nossos equipamentos funcionando na prática.
               </p>
             </div>
             
-            <div className="max-w-4xl mx-auto aspect-video rounded-2xl overflow-hidden shadow-xl bg-slate-900">
-              {siteConfig.videos[0].includes('youtube.com') || siteConfig.videos[0].includes('youtu.be') ? (
-                <iframe 
-                  src={siteConfig.videos[0].replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')} 
-                  className="w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                  allowFullScreen
-                ></iframe>
-              ) : siteConfig.videos[0].includes('vimeo.com') ? (
-                <iframe 
-                  src={siteConfig.videos[0].replace('vimeo.com/', 'player.vimeo.com/video/')} 
-                  className="w-full h-full"
-                  allow="autoplay; fullscreen; picture-in-picture" 
-                  allowFullScreen
-                ></iframe>
-              ) : (
-                <video 
-                  src={siteConfig.videos[0]} 
-                  controls 
-                  className="w-full h-full object-contain"
-                  preload="metadata"
-                />
+            <div className={`mx-auto relative group transition-all duration-500 ${siteConfig.videos[currentVideoSlide].includes('instagram.com') ? 'max-w-md' : 'max-w-4xl'}`}>
+              <div className={`rounded-2xl overflow-hidden shadow-xl bg-slate-900 transition-all duration-500 ${siteConfig.videos[currentVideoSlide].includes('instagram.com') ? 'aspect-[9/16]' : 'aspect-video'}`}>
+                {siteConfig.videos[currentVideoSlide].includes('youtube.com') || siteConfig.videos[currentVideoSlide].includes('youtu.be') ? (
+                  <iframe 
+                    src={siteConfig.videos[currentVideoSlide].replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')} 
+                    className="w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowFullScreen
+                  ></iframe>
+                ) : siteConfig.videos[currentVideoSlide].includes('vimeo.com') ? (
+                  <iframe 
+                    src={siteConfig.videos[currentVideoSlide].replace('vimeo.com/', 'player.vimeo.com/video/')} 
+                    className="w-full h-full"
+                    allow="autoplay; fullscreen; picture-in-picture" 
+                    allowFullScreen
+                  ></iframe>
+                ) : siteConfig.videos[currentVideoSlide].includes('instagram.com') ? (
+                  <iframe 
+                    src={siteConfig.videos[currentVideoSlide].split('?')[0].replace(/\/$/, '').replace(/\/embed$/, '') + '/embed'} 
+                    className="w-full h-full bg-white"
+                    allowtransparency="true"
+                    allowFullScreen
+                    frameBorder="0"
+                    scrolling="no"
+                    allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                  ></iframe>
+                ) : (
+                  <video 
+                    src={siteConfig.videos[currentVideoSlide]} 
+                    controls 
+                    className="w-full h-full object-contain"
+                    preload="metadata"
+                  />
+                )}
+              </div>
+
+              {siteConfig.videos.length > 1 && (
+                <>
+                  <button 
+                    onClick={prevVideoSlide}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/80 hover:bg-white text-slate-900 rounded-full flex items-center justify-center shadow-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+                  >
+                    <ChevronRight className="w-6 h-6 rotate-180" />
+                  </button>
+                  <button 
+                    onClick={nextVideoSlide}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/80 hover:bg-white text-slate-900 rounded-full flex items-center justify-center shadow-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+                  >
+                    <ChevronRight className="w-6 h-6" />
+                  </button>
+                  
+                  <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
+                    {siteConfig.videos.map((_: any, idx: number) => (
+                      <button
+                        key={idx}
+                        onClick={() => setCurrentVideoSlide(idx)}
+                        className={`w-2.5 h-2.5 rounded-full transition-all ${idx === currentVideoSlide ? 'bg-blue-600 w-8' : 'bg-slate-300 hover:bg-blue-400'}`}
+                      />
+                    ))}
+                  </div>
+                </>
               )}
             </div>
           </div>
@@ -653,7 +673,7 @@ function LandingPage({ siteConfig }: { siteConfig: any }) {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-4 gap-8 relative">
+          <div className="grid md:grid-cols-5 gap-8 relative">
             {/* Linha conectora (desktop) */}
             <div className="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-slate-200 -z-10 -translate-y-1/2"></div>
 
@@ -661,7 +681,8 @@ function LandingPage({ siteConfig }: { siteConfig: any }) {
               { step: "1", title: "Contato", desc: "Você fala com nossa equipe via WhatsApp ou telefone." },
               { step: "2", title: "Análise", desc: "Avaliamos seu espaço e necessidades específicas." },
               { step: "3", title: "Projeto", desc: "Criamos o desenho e orçamento sob medida." },
-              { step: "4", title: "Instalação", desc: "Entregamos e instalamos tudo pronto para uso." }
+              { step: "4", title: "Instalação", desc: "Entregamos e instalamos tudo pronto para uso." },
+              { step: "5", title: "Garantia", desc: "Oferecemos garantia personalizada conforme o projeto, assegurando qualidade e tranquilidade para o seu negócio." }
             ].map((item, i) => (
               <div key={i} className="relative flex flex-col items-center text-center">
                 <div className="w-16 h-16 rounded-full bg-blue-600 text-white flex items-center justify-center text-2xl font-bold mb-6 shadow-lg border-4 border-slate-50">
@@ -719,6 +740,24 @@ function LandingPage({ siteConfig }: { siteConfig: any }) {
             ].map((faq, i) => (
               <FAQItem key={i} question={faq.q} answer={faq.a} />
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Sobre a Caldepan */}
+      <section id="sobre" className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-3xl md:text-4xl font-bold mb-8 text-slate-900">Sobre a Caldepan</h2>
+            <p className="text-lg text-slate-600 leading-relaxed mb-6">
+              A CALDEPAN foi fundada em 2020 como consultoria de vendas de equipamentos, nossa empresa destaca-se pelo alto nível de aproveitamento de seus colaboradores e emprego de tecnologia de ponta, na fabricação de equipamentos para cozinhas profissionais.
+            </p>
+            <p className="text-lg text-slate-600 leading-relaxed mb-6">
+              Oferecemos o que há de melhor e mais moderno no setor de equipamentos em aço inox para cozinhas industriais e profissionais, disponibilizando completa infraestrutura para restaurantes, bares, grandes redes de fast-food, catering, equipamentos hospitalares e órgãos governamentais.
+            </p>
+            <p className="text-lg text-slate-600 leading-relaxed">
+              Agradeceríamos poder agendar um contato pessoal, oportunidade em que poderemos melhor esclarecer sobre nossa empresa, bem como nossos produtos.
+            </p>
           </div>
         </div>
       </section>
@@ -1830,58 +1869,6 @@ function TabConfiguracoes({ siteConfig, setSiteConfig }: { siteConfig: any, setS
     }
   };
 
-  const handleSolutionImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, solutionId: string) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setIsUploading(true);
-    try {
-      const dataUrl = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const img = new Image();
-          img.onload = () => {
-            const canvas = document.createElement('canvas');
-            let width = img.width;
-            let height = img.height;
-            const MAX_DIMENSION = 600;
-
-            if (width > height && width > MAX_DIMENSION) {
-              height *= MAX_DIMENSION / width;
-              width = MAX_DIMENSION;
-            } else if (height > MAX_DIMENSION) {
-              width *= MAX_DIMENSION / height;
-              height = MAX_DIMENSION;
-            }
-
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            ctx?.drawImage(img, 0, 0, width, height);
-            
-            resolve(canvas.toDataURL('image/jpeg', 0.6));
-          };
-          img.onerror = reject;
-          img.src = reader.result as string;
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-      
-      setConfig((prev: any) => ({
-        ...prev,
-        solutionImages: {
-          ...(prev.solutionImages || {}),
-          [solutionId]: dataUrl
-        }
-      }));
-    } catch (error) {
-      console.error("Upload error:", error);
-      alert("Erro ao processar imagem. Tente novamente.");
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
   const handleClientLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -2043,60 +2030,69 @@ function TabConfiguracoes({ siteConfig, setSiteConfig }: { siteConfig: any, setS
         </div>
 
         <div className="border-t border-slate-100 pt-6">
-          <label className="block text-sm font-bold text-slate-700 mb-2">Imagens das Soluções (Cards)</label>
-          <p className="text-xs text-slate-500 mb-4">Essas imagens aparecerão quando o usuário passar o mouse sobre os cards na seção "Nossas Soluções".</p>
+          <label className="block text-sm font-bold text-slate-700 mb-2">Vídeos em Destaque (YouTube/Vimeo/Instagram)</label>
+          <p className="text-xs text-slate-500 mb-4">Adicione até 5 links de vídeos (YouTube, Vimeo ou Reels/Posts do Instagram) para exibir em um carrossel na página inicial.</p>
           
-          <div className="grid sm:grid-cols-2 gap-6">
-            {[
-              { id: 'inox', title: "Equipamentos em Inox" },
-              { id: 'refrigeracao', title: "Refrigeração Industrial" },
-              { id: 'coccao', title: "Equipamentos de Cocção" },
-              { id: 'exaustao', title: "Sistemas de Exaustão" },
-              { id: 'mobiliario', title: "Mobiliário Profissional" },
-              { id: 'projetos', title: "Projetos Completos" },
-            ].map(sol => (
-              <div key={sol.id} className="border border-slate-200 rounded-lg p-4 bg-slate-50">
-                <label className="block text-sm font-bold text-slate-700 mb-2">{sol.title}</label>
+          <div className="space-y-3">
+            {(config.videos || []).map((video: string, idx: number) => (
+              <div key={idx} className="flex gap-2">
                 <input 
-                  type="file" 
-                  accept="image/*"
-                  onChange={e => handleSolutionImageUpload(e, sol.id)} 
-                  className="w-full px-3 py-1.5 text-sm border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none mb-3 bg-white" 
-                  disabled={isUploading}
+                  type="url" 
+                  value={video}
+                  onChange={e => {
+                    const newVideos = [...(config.videos || [])];
+                    newVideos[idx] = e.target.value;
+                    setConfig((prev: any) => ({ ...prev, videos: newVideos }));
+                  }} 
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
                 />
-                <div className="aspect-video w-full rounded-md overflow-hidden border border-slate-200 bg-slate-200 flex items-center justify-center">
-                  {config.solutionImages?.[sol.id] ? (
-                    <img src={config.solutionImages[sol.id]} alt={sol.title} className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-xs text-slate-400">Sem imagem</span>
-                  )}
-                </div>
+                <button 
+                  onClick={() => {
+                    const newVideos = [...(config.videos || [])];
+                    newVideos.splice(idx, 1);
+                    setConfig((prev: any) => ({ ...prev, videos: newVideos }));
+                  }}
+                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors"
+                  title="Remover Vídeo"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
             ))}
-          </div>
-        </div>
-
-        <div className="border-t border-slate-100 pt-6">
-          <label className="block text-sm font-bold text-slate-700 mb-2">Vídeo em Destaque (Link do YouTube/Vimeo)</label>
-          <div className="flex gap-2">
-            <input 
-              type="url" 
-              placeholder="https://www.youtube.com/watch?v=..."
-              value={config.videos?.[0] || ''}
-              onChange={e => setConfig((prev: any) => ({ ...prev, videos: [e.target.value] }))} 
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
-            />
-            {config.videos?.[0] && (
-              <button 
-                onClick={() => setConfig((prev: any) => ({ ...prev, videos: [] }))}
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors"
-                title="Remover Vídeo"
-              >
-                <X className="w-5 h-5" />
-              </button>
+            
+            {(!config.videos || config.videos.length < 5) && (
+              <div className="flex gap-2">
+                <input 
+                  type="url" 
+                  placeholder="https://www.youtube.com/watch?v=... ou https://www.instagram.com/reel/..."
+                  id="new-video-input"
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      const val = (e.target as HTMLInputElement).value;
+                      if (val) {
+                        setConfig((prev: any) => ({ ...prev, videos: [...(prev.videos || []), val] }));
+                        (e.target as HTMLInputElement).value = '';
+                      }
+                    }
+                  }}
+                />
+                <button 
+                  onClick={() => {
+                    const input = document.getElementById('new-video-input') as HTMLInputElement;
+                    if (input && input.value) {
+                      setConfig((prev: any) => ({ ...prev, videos: [...(prev.videos || []), input.value] }));
+                      input.value = '';
+                    }
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap"
+                >
+                  <Plus className="w-5 h-5" /> Adicionar
+                </button>
+              </div>
             )}
           </div>
-          <p className="text-xs text-slate-500 mt-1">Cole o link de um vídeo do YouTube ou Vimeo para exibir na página inicial.</p>
         </div>
 
         <div className="border-t border-slate-100 pt-6">
@@ -2209,7 +2205,7 @@ function Dashboard({ siteConfig, setSiteConfig }: { siteConfig: any, setSiteConf
     const unsubAuth = onAuthStateChanged(auth, (currentUser) => {
       if (!currentUser) {
         navigate('/');
-      } else if (currentUser.email !== 'luis.silva.avarese@gmail.com') {
+      } else if (currentUser.email !== 'luis.silva.avarese@gmail.com' && currentUser.email !== 'caldepancozinhas@gmail.com') {
         signOut(auth);
         alert("Acesso negado. Apenas o administrador pode acessar esta área.");
         navigate('/');
