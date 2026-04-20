@@ -10,6 +10,11 @@ service cloud.firestore {
       allow write: if isAuthenticated();
     }
 
+    match /data/products {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
     match /data/{document=**} {
       allow read, write: if isAuthenticated();
     }

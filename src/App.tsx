@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useNavigate, useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { db, auth, storage } from './firebase';
 import { collection, doc, onSnapshot, setDoc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
@@ -51,7 +51,17 @@ import {
   Plus,
   Camera,
   HardHat,
-  Instagram
+  Instagram,
+  Coffee,
+  Trash2,
+  Edit,
+  Save,
+  ArrowLeft,
+  Image as ImageIcon,
+  Tag,
+  Info,
+  CheckCircle,
+  Package
 } from 'lucide-react';
 
 const WHATSAPP_NUMBER = "5511993005333";
@@ -117,12 +127,313 @@ function Logo({ className = "", bgClass = "bg-blue-600", text = "CALDEPAN", logo
   );
 }
 
+export const MOCK_PRODUCTS = [
+  {
+    id: "bancadas-inox",
+    nome: "Bancadas em Inox",
+    descricao_curta: "Ideais para manipulação de alimentos com máxima higiene.",
+    descricao_completa: "Projetadas para alta durabilidade e higiene, nossas bancadas em inox são ideais para cozinhas industriais que exigem resistência e praticidade. Fabricadas em aço inoxidável de alta qualidade, garantem um ambiente de trabalho seguro e dentro das normas sanitárias.",
+    imagens: ["https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=800"],
+    categoria: "Inox",
+    especificacoes: ["Material: Aço Inox AISI 304", "Fabricação: Sob medida", "Acabamento: Escovado", "Sapatas: Niveladoras niveladas"],
+    aplicacoes: ["Restaurantes", "Hospitais", "Indústrias Alimentícias", "Catering", "Dark Kitchens"],
+    diferenciais: ["Projeto totalmente personalizado", "Reforço estrutural inferior", "Alta durabilidade", "Tampo liso ou com encosto (espelho)"],
+    destaque: true,
+    data_criacao: Date.now()
+  },
+  {
+    id: "pias-industriais",
+    nome: "Pias Industriais Inox",
+    descricao_curta: "Pias com cubas profundas para lavagem pesada.",
+    descricao_completa: "As pias industriais Caldepan são desenvolvidas para suportar o ritmo intenso de cozinhas profissionais. Com cubas soldadas e estrutura reforçada, evitam acúmulo de resíduos e facilitam a limpeza diária.",
+    imagens: ["https://images.unsplash.com/photo-1590846406792-0adc7f138fbc?auto=format&fit=crop&q=80&w=800"],
+    categoria: "Inox",
+    especificacoes: ["Material: Aço Inox AISI 304", "Cubas: Sob medida", "Válvula: Americana", "Estrutura: Tubular reforçada"],
+    aplicacoes: ["Cozinhas Industriais", "Frigoríficos", "Laboratórios", "Açougues"],
+    diferenciais: ["Cubas de alta capacidade", "Solda TIG com acabamento impecável", "Fácil assepsia", "Prateleira lisa ou gradeada (opcional)"],
+    destaque: true,
+    data_criacao: Date.now() - 1000
+  },
+  {
+    id: "prateleiras-inox",
+    nome: "Prateleiras em Inox",
+    descricao_curta: "Organização eficiente e dentro da vigilância sanitária.",
+    descricao_completa: "Mantenha seus insumos organizados e longe de contaminações. Nossas prateleiras são super resistentes, fáceis de montar e ajudam a otimizar o espaço vertical do seu estoque ou câmara fria.",
+    imagens: ["https://images.unsplash.com/photo-1625631980783-0246eb8248c8?auto=format&fit=crop&q=80&w=800"],
+    categoria: "Mobiliário",
+    especificacoes: ["Material: Aço Inox", "Níveis: Configuráveis", "Fixação: Parede ou com estrutura de solo", "Capacidade: Alta carga"],
+    aplicacoes: ["Câmaras Frias", "Estoques Secos", "Áreas de Lavagem", "Cozinhas"],
+    diferenciais: ["Resistente à corrosão", "Prateleiras lisas ou perfuradas", "Otimização de área útil", "Assepsia rápida"],
+    destaque: false,
+    data_criacao: Date.now() - 2000
+  },
+  {
+    id: "estantes-inox",
+    nome: "Estantes em Inox",
+    descricao_curta: "Estruturas completas para armazenamento e operação.",
+    descricao_completa: "Sólidas e versáteis, as estantes tubulares em inox suportam uso ostensivo, seja para apoio de caixas organizadoras, mantimentos panificados ou vasilhames de grande volume.",
+    imagens: ["https://images.unsplash.com/photo-1563223771-477b7cb30ba4?auto=format&fit=crop&q=80&w=800"],
+    categoria: "Mobiliário",
+    especificacoes: ["Material: Aço Inox AISI 304/430", "Opções de planos: Lisos, Perfurados ou Gradeados", "Pés: Sapatas de nylon niveladoras"],
+    aplicacoes: ["Padarias", "Frigoríficos", "Supermercados", "Hospitais"],
+    diferenciais: ["Modularidade", "Reforço contra empenamento", "Vida útil prolongada"],
+    destaque: false,
+    data_criacao: Date.now() - 3000
+  },
+  {
+    id: "coifas-industriais",
+    nome: "Coifas Industriais",
+    descricao_curta: "Sistema de exaustão de alto desempenho.",
+    descricao_completa: "Remova o calor, fumaça e odores da sua cozinha! Nossas coifas industriais são projetadas com alto poder de captação e filtro inox em labirinto, garantindo um ambiente limpo e de acordo com as normas bombeiro/anvisa.",
+    imagens: ["https://images.unsplash.com/photo-1587314168485-3236d6710814?auto=format&fit=crop&q=80&w=800"],
+    categoria: "Exaustão",
+    especificacoes: ["Material: Aço Inox / Galvanizado (dutos)", "Filtros: Tipo Labirinto", "Calha coletora de gordura", "Luminárias (opcionais)"],
+    aplicacoes: ["Fornos industriais", "Chapas", "Fritadeiras", "Fogões"],
+    diferenciais: ["Baixo ruído aerodinâmico", "Fácil retirada de filtros para lavagem", "Drenagem facilitada", "Segurança contra propagação de chamas"],
+    destaque: true,
+    data_criacao: Date.now() - 4000
+  },
+  {
+    id: "mesas-apoio",
+    nome: "Mesas de Apoio",
+    descricao_curta: "Ergonomia e agilidade nas rotinas de cocção.",
+    descricao_completa: "Para suporte lateral de fornos, equipamentos de bancada e organização do pass box. Estrutura confiável para as horas de maior movimento do seu restaurante.",
+    imagens: ["https://images.unsplash.com/photo-1522273400909-fd1a8f77637e?auto=format&fit=crop&q=80&w=800"],
+    categoria: "Mobiliário",
+    especificacoes: ["Material: Aço Inox", "Prateleira inferior (opcional)", "Reforço no tampo"],
+    aplicacoes: ["Rotisseries", "Linha de montagem", "Salander", "Apoio a fornos combinados"],
+    diferenciais: ["Base com sapata niveladora", "Fácil movimentação (opção com rodízios)", "Higiênico", "Sob medida"],
+    destaque: false,
+    data_criacao: Date.now() - 5000
+  }
+];
+
+export function ProductPage({ siteConfig }: { siteConfig: any }) {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [product, setProduct] = useState<any>(null);
+  const [currentImg, setCurrentImg] = useState(0);
+
+  useEffect(() => {
+    // Busca do banco ou mock
+    const loadProduct = async () => {
+      try {
+        const docRef = doc(db, 'data', 'products');
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists() && docSnap.data().items) {
+          const loadedProduct = docSnap.data().items.find((p: any) => p.id === id);
+          if (loadedProduct) {
+             setProduct(loadedProduct);
+             return;
+          }
+        }
+        const mock = MOCK_PRODUCTS.find(p => p.id === id);
+        if (mock) setProduct(mock);
+      } catch (error) {
+        const mock = MOCK_PRODUCTS.find(p => p.id === id);
+        if (mock) setProduct(mock);
+      }
+    };
+    loadProduct();
+  }, [id]);
+
+  if (!product) return <div className="min-h-screen py-32 flex justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>;
+
+  const whatsappMessage = `Olá, tenho interesse neste produto (${product.nome}) e gostaria de um orçamento.`;
+  const whatsappLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(whatsappMessage)}`;
+  const [relatedProducts, setRelatedProducts] = useState<any[]>(MOCK_PRODUCTS.filter(p => p.id !== id).slice(0, 3));
+  useEffect(() => {
+     getDoc(doc(db, 'data', 'products')).then(docSnap => {
+        if (docSnap.exists() && docSnap.data().items) {
+           setRelatedProducts(docSnap.data().items.filter((p: any) => p.id !== id).slice(0, 3));
+        }
+     }).catch(console.error);
+  }, [id]);
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <header className="bg-slate-900 border-b border-white/10 sticky top-0 z-50">
+        <div className="container mx-auto px-4 h-20 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2 group">
+            <ArrowLeft className="w-6 h-6 text-slate-300 group-hover:text-white transition-colors" />
+            <span className="text-slate-300 group-hover:text-white transition-colors font-medium">Voltar para Início</span>
+          </Link>
+          <Logo siteConfig={siteConfig} />
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-12 md:py-20">
+        <div className="bg-white rounded-3xl shadow-xl overflow-hidden mb-16 border border-slate-100">
+          <div className="grid lg:grid-cols-2 gap-0">
+            {/* Gallery */}
+            <div className="bg-slate-100 p-8 flex flex-col items-center justify-center relative min-h-[400px]">
+              <div className="relative w-full aspect-square md:aspect-[4/3] rounded-2xl overflow-hidden shadow-lg bg-white mb-6">
+                <img 
+                  src={product.imagens[currentImg] || undefined} 
+                  alt={product.nome} 
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+              </div>
+              {product.imagens.length > 1 && (
+                <div className="flex gap-4 overflow-x-auto pb-4 w-full justify-center">
+                  {product.imagens.map((img: string, idx: number) => (
+                    <button 
+                      key={idx}
+                      onClick={() => setCurrentImg(idx)}
+                      className={`w-20 h-20 rounded-xl overflow-hidden border-2 transition-all shrink-0 ${currentImg === idx ? 'border-blue-600 shadow-md scale-105' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                    >
+                      <img src={img} alt={`Thumb ${idx}`} className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Info */}
+            <div className="p-8 lg:p-12 xl:p-16 flex flex-col justify-center">
+              <div className="inline-flex items-center gap-2 text-blue-600 bg-blue-50 px-4 py-2 rounded-full text-sm font-bold mb-6 self-start tracking-wide uppercase">
+                <Tag className="w-4 h-4" />
+                {product.categoria}
+              </div>
+              
+              <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 tracking-tight">
+                {product.nome}
+              </h1>
+              
+              <p className="text-xl text-slate-600 mb-10 leading-relaxed font-medium">
+                {product.descricao_completa}
+              </p>
+
+              <div className="grid sm:grid-cols-2 gap-8 mb-12">
+                {product.especificacoes && product.especificacoes.length > 0 && (
+                  <div>
+                    <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 mb-4 border-b border-slate-100 pb-2">
+                      <Settings className="w-5 h-5 text-blue-600" />
+                      Especificações
+                    </h3>
+                    <ul className="space-y-3">
+                      {product.especificacoes.map((spec: string, idx: number) => (
+                        <li key={idx} className="flex gap-3 text-slate-600">
+                          <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0" />
+                          <span>{spec}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {product.aplicacoes && product.aplicacoes.length > 0 && (
+                  <div>
+                    <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 mb-4 border-b border-slate-100 pb-2">
+                      <LayoutDashboard className="w-5 h-5 text-blue-600" />
+                      Aplicações
+                    </h3>
+                    <ul className="space-y-3">
+                      {product.aplicacoes.map((app: string, idx: number) => (
+                        <li key={idx} className="flex gap-3 text-slate-600">
+                          <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0" />
+                          <span>{app}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+
+              {product.diferenciais && product.diferenciais.length > 0 && (
+                <div className="mb-12 bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                   <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 mb-4">
+                     <Star className="w-5 h-5 text-amber-500" />
+                     Diferenciais Caldepan
+                   </h3>
+                   <div className="grid sm:grid-cols-2 gap-3 mt-4">
+                     {product.diferenciais.map((dif: string, idx: number) => (
+                       <div key={idx} className="flex items-start gap-2 bg-white px-4 py-3 rounded-lg shadow-sm border border-slate-100">
+                         <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 shrink-0"></div>
+                         <span className="text-slate-700 font-medium text-sm leading-snug">{dif}</span>
+                       </div>
+                     ))}
+                   </div>
+                </div>
+              )}
+
+              <div className="mt-auto pt-8 border-t border-slate-100">
+                <a 
+                  href={whatsappLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-5 rounded-xl font-bold text-lg md:text-xl transition-all transform hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3 shadow-xl shadow-emerald-500/20"
+                >
+                  <MessageCircle className="w-7 h-7" />
+                  Solicitar orçamento deste produto
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Related Products */}
+        <div className="mt-24">
+          <h2 className="text-3xl font-bold text-slate-900 mb-10 font-black">Você também pode se interessar</h2>
+          <div className="grid md:grid-cols-3 gap-8">
+            {relatedProducts.map(rp => (
+              <Link to={`/produto/${rp.id}`} key={rp.id} className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all border border-slate-100 overflow-hidden flex flex-col">
+                <div className="aspect-[4/3] overflow-hidden bg-slate-100 relative">
+                  <img 
+                    src={rp.imagens[0]} 
+                    alt={rp.nome} 
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                    loading="lazy" 
+                  />
+                  {rp.destaque && (
+                    <div className="absolute top-4 right-4 bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider shadow-md">
+                      Destaque
+                    </div>
+                  )}
+                </div>
+                <div className="p-6 flex flex-col flex-grow">
+                  <h3 className="text-xl font-bold text-slate-900 mb-2 truncate group-hover:text-blue-600 transition-colors">{rp.nome}</h3>
+                  <p className="text-slate-500 text-sm mb-6 line-clamp-2">{rp.descricao_curta}</p>
+                  <div className="mt-auto flex items-center justify-between text-blue-600 font-bold group-hover:gap-2 transition-all">
+                    <span>Ver detalhes</span>
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </main>
+      
+      <footer className="bg-slate-900 border-t border-slate-800 py-12 pb-24 text-center text-slate-400">
+        <div className="container mx-auto px-4">
+          <Logo siteConfig={siteConfig} />
+          <p className="mt-6">&copy; {new Date().getFullYear()} Caldepan Cozinhas Industriais.</p>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
 function LandingPage({ siteConfig }: { siteConfig: any }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentVideoSlide, setCurrentVideoSlide] = useState(0);
+  const [products, setProducts] = useState<any[]>(MOCK_PRODUCTS);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'data', 'products'), (docSnap) => {
+      if (docSnap.exists() && docSnap.data().items && docSnap.data().items.length > 0) {
+        setProducts(docSnap.data().items);
+      }
+    }, (error) => {
+      console.error("Error loading products:", error);
+    });
+    return () => unsub();
+  }, []);
 
   useEffect(() => {
     if (!siteConfig.carouselImages || siteConfig.carouselImages.length <= 1) return;
@@ -314,14 +625,14 @@ function LandingPage({ siteConfig }: { siteConfig: any }) {
                   href={WHATSAPP_LINK}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-4 rounded-md font-bold text-lg transition-all transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/30"
+                  className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-4 rounded-md font-bold text-lg transition-all transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/30 w-full sm:w-auto"
                 >
                   <MessageCircle className="w-6 h-6" />
-                  Solicitar Orçamento no WhatsApp
+                  Orçamento
                 </a>
                 <a 
                   href={PHONE_LINK}
-                  className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-8 py-4 rounded-md font-bold text-lg transition-all flex items-center justify-center gap-2 backdrop-blur-sm"
+                  className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-8 py-4 rounded-md font-bold text-lg transition-all flex items-center justify-center gap-2 backdrop-blur-sm w-full sm:w-auto"
                 >
                   <Phone className="w-6 h-6" />
                   Ligar Agora
@@ -432,11 +743,12 @@ function LandingPage({ siteConfig }: { siteConfig: any }) {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="flex flex-wrap justify-center gap-8">
             {[
               { id: 'inox', icon: Wrench, title: "Equipamentos em Inox", desc: "Bancadas, pias, prateleiras e estantes sob medida com alta durabilidade." },
               { id: 'refrigeracao', icon: ThermometerSnowflake, title: "Refrigeração Industrial", desc: "Câmaras frias, balcões refrigerados e freezers de alta performance." },
               { id: 'coccao', icon: Flame, title: "Equipamentos de Cocção", desc: "Fogões industriais, fornos, chapas e fritadeiras profissionais." },
+              { id: 'caldeiroes', icon: Coffee, title: "Caldeirões e mais", desc: "Caldeirões, frigideiras basculantes e cafeteiras industriais." },
               { id: 'exaustao', icon: Wind, title: "Sistemas de Exaustão", desc: "Coifas e tubulações projetadas para manter o ambiente limpo e seguro." },
               { id: 'mobiliario', icon: UtensilsCrossed, title: "Mobiliário Profissional", desc: "Estruturas completas para organização e fluxo de trabalho." },
               { id: 'projetos', icon: ChefHat, title: "Projetos Completos", desc: "Do desenho da planta até a instalação final dos equipamentos." },
@@ -447,7 +759,7 @@ function LandingPage({ siteConfig }: { siteConfig: any }) {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="bg-white p-8 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow"
+                className="bg-white p-8 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1.333rem)] text-left"
               >
                 <div className="w-14 h-14 bg-blue-600 rounded-lg flex items-center justify-center text-white mb-6">
                   <servico.icon className="w-7 h-7" />
@@ -471,9 +783,9 @@ function LandingPage({ siteConfig }: { siteConfig: any }) {
                 className="rounded-2xl shadow-2xl w-full h-[400px] md:h-[500px] object-cover" 
                 referrerPolicy="no-referrer" 
               />
-              <div className="absolute -bottom-6 -right-6 bg-blue-600 text-white p-6 rounded-xl shadow-xl hidden md:block border border-blue-500">
-                <p className="text-3xl font-bold text-emerald-400 mb-1">100%</p>
-                <p className="text-sm font-medium text-slate-300">Aço Inox<br/>Profissional</p>
+              <div className="absolute -bottom-4 right-4 md:-bottom-6 md:-right-6 bg-blue-600 text-white p-5 md:p-6 rounded-xl shadow-xl border border-blue-500 z-10">
+                <p className="text-2xl md:text-3xl font-bold text-emerald-400 mb-1">100%</p>
+                <p className="text-xs md:text-sm font-medium text-slate-300">Aço Inox<br/>Profissional</p>
               </div>
             </div>
             
@@ -507,6 +819,81 @@ function LandingPage({ siteConfig }: { siteConfig: any }) {
         </div>
       </section>
 
+      {false && (
+        <>
+          {/* Seção de Produtos (Portfólio) */}
+          <section id="produtos" className="py-24 bg-white relative">
+            <div className="container mx-auto px-4">
+              <div className="text-center max-w-3xl mx-auto mb-16">
+                <h2 className="text-3xl md:text-4xl lg:text-5xl font-black mb-4 text-slate-900 tracking-tight">Soluções em Inox para Cozinhas Industriais</h2>
+                <p className="text-lg text-slate-600 font-medium">
+                  Equipamentos sob medida com alta durabilidade, eficiência e acabamento profissional.
+                </p>
+              </div>
+
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {products.map((produto) => (
+                  <Link  
+                    to={`/produto/${produto.id}`}
+                    key={produto.id} 
+                    className="group relative bg-white border border-slate-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 flex flex-col"
+                  >
+                    <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+                      <img 
+                        src={produto.imagens[0]} 
+                        alt={produto.nome} 
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                      
+                      {produto.destaque && (
+                        <div className="absolute top-4 left-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider shadow-lg flex items-center gap-1.5">
+                          <Star className="w-3.5 h-3.5 fill-white" />
+                          Destaque
+                        </div>
+                      )}
+                      
+                      <div className="absolute bottom-4 left-4 right-4 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 hidden md:block">
+                        <span className="bg-white/95 backdrop-blur text-blue-900 font-bold py-2.5 px-4 rounded-xl w-full flex items-center justify-center gap-2 shadow-xl">
+                          Ver detalhes
+                          <ArrowRight className="w-4 h-4" />
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="p-6 flex flex-col flex-grow">
+                      <div className="inline-flex items-center gap-1.5 text-blue-600 text-sm font-bold mb-3 tracking-wide">
+                        {produto.categoria}
+                      </div>
+                      
+                      <h3 className="text-2xl font-black text-slate-900 mb-3 group-hover:text-blue-600 transition-colors">
+                        {produto.nome}
+                      </h3>
+                      
+                      <p className="text-slate-500 mb-6 line-clamp-2 leading-relaxed">
+                        {produto.descricao_curta}
+                      </p>
+
+                      <div className="mt-auto pt-4 border-t border-slate-100">
+                        <span className="text-blue-600 font-bold flex items-center justify-between md:hidden group-hover:text-blue-700">
+                          Ver detalhes
+                          <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
+                        </span>
+                        <span className="hidden md:flex text-slate-400 text-sm items-center gap-2 font-medium">
+                          <Info className="w-4 h-4" />
+                          Clique para ver especificações completas
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        </>
+      )}
+
       {/* Galeria de Fotos (Carrossel) */}
       {siteConfig.carouselImages && siteConfig.carouselImages.length > 0 && (
         <section id="projetos" className="py-20 bg-slate-50 overflow-hidden">
@@ -518,37 +905,39 @@ function LandingPage({ siteConfig }: { siteConfig: any }) {
               </p>
             </div>
             
-            <div className="relative max-w-lg mx-auto">
-              <div className="overflow-hidden rounded-2xl shadow-lg aspect-[4/5] relative bg-slate-200">
+            <div className="relative max-w-sm mx-auto flex flex-col justify-center">
+              <div className="overflow-hidden rounded-2xl shadow-lg aspect-[9/16] relative bg-slate-200 w-full mb-6">
                 {siteConfig.carouselImages.map((img: string, idx: number) => (
                   <div 
                     key={idx} 
                     className={`absolute inset-0 transition-opacity duration-1000 ${idx === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
                   >
-                    <img src={img || undefined} alt={`Projeto ${idx + 1}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                    <img src={img || undefined} alt={`Projeto ${idx + 1}`} className="w-full h-full object-contain" referrerPolicy="no-referrer" />
                   </div>
                 ))}
+                
+                {siteConfig.carouselImages.length > 1 && (
+                  <>
+                    <button onClick={prevSlide} className="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/80 hover:bg-white text-blue-900 p-2 rounded-full shadow-lg transition-all">
+                      <ChevronLeft className="w-6 h-6" />
+                    </button>
+                    <button onClick={nextSlide} className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/80 hover:bg-white text-blue-900 p-2 rounded-full shadow-lg transition-all">
+                      <ChevronRight className="w-6 h-6" />
+                    </button>
+                  </>
+                )}
               </div>
               
               {siteConfig.carouselImages.length > 1 && (
-                <>
-                  <button onClick={prevSlide} className="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/80 hover:bg-white text-blue-900 p-2 rounded-full shadow-lg transition-all">
-                    <ChevronLeft className="w-6 h-6" />
-                  </button>
-                  <button onClick={nextSlide} className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/80 hover:bg-white text-blue-900 p-2 rounded-full shadow-lg transition-all">
-                    <ChevronRight className="w-6 h-6" />
-                  </button>
-                  
-                  <div className="flex justify-center gap-2 mt-6">
-                    {siteConfig.carouselImages.map((_: any, idx: number) => (
-                      <button 
-                        key={idx}
-                        onClick={() => setCurrentSlide(idx)}
-                        className={`w-3 h-3 rounded-full transition-all ${idx === currentSlide ? 'bg-blue-600 w-6' : 'bg-slate-300'}`}
-                      />
-                    ))}
-                  </div>
-                </>
+                <div className="flex justify-center gap-2 flex-wrap">
+                  {siteConfig.carouselImages.map((_: any, idx: number) => (
+                    <button 
+                      key={idx}
+                      onClick={() => setCurrentSlide(idx)}
+                      className={`h-3 rounded-full transition-all ${idx === currentSlide ? 'bg-blue-600 w-6' : 'bg-slate-300 w-3'}`}
+                    />
+                  ))}
+                </div>
               )}
             </div>
           </div>
@@ -566,8 +955,8 @@ function LandingPage({ siteConfig }: { siteConfig: any }) {
               </p>
             </div>
             
-            <div className={`mx-auto relative group transition-all duration-500 ${siteConfig.videos[currentVideoSlide].includes('instagram.com') ? 'max-w-md' : 'max-w-4xl'}`}>
-              <div className={`rounded-2xl overflow-hidden shadow-xl bg-slate-900 transition-all duration-500 ${siteConfig.videos[currentVideoSlide].includes('instagram.com') ? 'aspect-[9/16]' : 'aspect-video'}`}>
+            <div className={`mx-auto relative group transition-all duration-500 mb-10 ${siteConfig.videos[currentVideoSlide].includes('instagram.com') ? 'max-w-sm' : 'max-w-4xl'}`}>
+              <div className={`rounded-[2rem] overflow-hidden shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] border-[8px] sm:border-[12px] border-white ring-1 ring-slate-200 bg-slate-50 transition-all duration-500 ${siteConfig.videos[currentVideoSlide].includes('instagram.com') ? 'aspect-[9/16]' : 'aspect-video'}`}>
                 {siteConfig.videos[currentVideoSlide].includes('youtube.com') || siteConfig.videos[currentVideoSlide].includes('youtu.be') ? (
                   <iframe 
                     src={siteConfig.videos[currentVideoSlide].replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')} 
@@ -617,12 +1006,12 @@ function LandingPage({ siteConfig }: { siteConfig: any }) {
                     <ChevronRight className="w-6 h-6" />
                   </button>
                   
-                  <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
+                  <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 flex gap-2 flex-wrap justify-center w-full">
                     {siteConfig.videos.map((_: any, idx: number) => (
                       <button
                         key={idx}
                         onClick={() => setCurrentVideoSlide(idx)}
-                        className={`w-2.5 h-2.5 rounded-full transition-all ${idx === currentVideoSlide ? 'bg-blue-600 w-8' : 'bg-slate-300 hover:bg-blue-400'}`}
+                        className={`h-2.5 rounded-full transition-all ${idx === currentVideoSlide ? 'bg-blue-600 w-8' : 'bg-slate-300 w-2.5 hover:bg-blue-400'}`}
                       />
                     ))}
                   </div>
@@ -2006,15 +2395,15 @@ function TabConfiguracoes({ siteConfig, setSiteConfig }: { siteConfig: any, setS
             type="file" 
             accept="image/*"
             multiple
-            onChange={e => handleFileUpload(e, 'carouselImages', true, 10)} 
+            onChange={e => handleFileUpload(e, 'carouselImages', true, 20)} 
             className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
             disabled={isUploading}
           />
-          <p className="text-xs text-slate-500 mt-1">Selecione até 10 imagens para o carrossel. Formato 4:5 recomendado.</p>
+          <p className="text-xs text-slate-500 mt-1">Selecione até 20 imagens para o carrossel. Formato 9:16 recomendado.</p>
           <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-4">
             {config.carouselImages?.map((img: string, idx: number) => (
-              <div key={idx} className="relative aspect-[4/5] rounded-lg overflow-hidden border border-slate-200 bg-slate-100 group">
-                <img src={img || undefined} alt={`Carousel ${idx}`} className="w-full h-full object-cover" />
+              <div key={idx} className="relative aspect-[9/16] rounded-lg overflow-hidden border border-slate-200 bg-slate-100 group">
+                <img src={img || undefined} alt={`Carousel ${idx}`} className="w-full h-full object-contain" />
                 <button 
                   onClick={() => setConfig((prev: any) => ({
                     ...prev,
@@ -2193,6 +2582,267 @@ function TabConfiguracoes({ siteConfig, setSiteConfig }: { siteConfig: any, setS
   );
 }
 
+function TabProdutos() {
+  const [products, setProducts] = useState<any[]>(MOCK_PRODUCTS);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<any>(null);
+
+  // Form State
+  const [nome, setNome] = useState('');
+  const [descricaoCurta, setDescricaoCurta] = useState('');
+  const [descricaoCompleta, setDescricaoCompleta] = useState('');
+  const [categoria, setCategoria] = useState('');
+  const [destaque, setDestaque] = useState(false);
+  const [imagensInput, setImagensInput] = useState('');
+  const [especificacoesInput, setEspecificacoesInput] = useState('');
+  const [aplicacoesInput, setAplicacoesInput] = useState('');
+  const [diferenciaisInput, setDiferenciaisInput] = useState('');
+
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'data', 'products'), (docSnap) => {
+      if (docSnap.exists() && docSnap.data().items) {
+        if (docSnap.data().items.length > 0) {
+          setProducts(docSnap.data().items);
+        }
+      } else {
+        // Initialize with mocks if empty
+        setDoc(doc(db, 'data', 'products'), { items: MOCK_PRODUCTS }).catch(console.error);
+      }
+    }, (error) => {
+      console.error("Error loading products:", error);
+    });
+    return () => unsub();
+  }, []);
+
+  const handleOpenModal = (prod: any = null) => {
+    if (prod) {
+      setEditingProduct(prod);
+      setNome(prod.nome);
+      setDescricaoCurta(prod.descricao_curta);
+      setDescricaoCompleta(prod.descricao_completa);
+      setCategoria(prod.categoria);
+      setDestaque(prod.destaque || false);
+      setImagensInput((prod.imagens || []).join('\n'));
+      setEspecificacoesInput((prod.especificacoes || []).join('\n'));
+      setAplicacoesInput((prod.aplicacoes || []).join('\n'));
+      setDiferenciaisInput((prod.diferenciais || []).join('\n'));
+    } else {
+      setEditingProduct(null);
+      setNome('');
+      setDescricaoCurta('');
+      setDescricaoCompleta('');
+      setCategoria('');
+      setDestaque(false);
+      setImagensInput('');
+      setEspecificacoesInput('');
+      setAplicacoesInput('');
+      setDiferenciaisInput('');
+    }
+    setIsModalOpen(true);
+  };
+
+  const handleSave = async () => {
+    if (!nome || !descricaoCurta || !categoria) return alert('Preencha os campos obrigatórios (Nome, Descrição Curta, Categoria).');
+
+    const newProduct = {
+      id: editingProduct ? editingProduct.id : nome.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      nome,
+      descricao_curta: descricaoCurta,
+      descricao_completa: descricaoCompleta,
+      categoria,
+      destaque,
+      imagens: imagensInput ? imagensInput.split('\n').map(s => s.trim()).filter(Boolean) : [],
+      especificacoes: especificacoesInput ? especificacoesInput.split('\n').map(s => s.trim()).filter(Boolean) : [],
+      aplicacoes: aplicacoesInput ? aplicacoesInput.split('\n').map(s => s.trim()).filter(Boolean) : [],
+      diferenciais: diferenciaisInput ? diferenciaisInput.split('\n').map(s => s.trim()).filter(Boolean) : [],
+      data_criacao: editingProduct ? editingProduct.data_criacao : Date.now()
+    };
+
+    try {
+      if (editingProduct) {
+        await setDoc(doc(db, 'data', 'products'), { items: products.map(p => p.id === newProduct.id ? newProduct : p) });
+      } else {
+        await setDoc(doc(db, 'data', 'products'), { items: [newProduct, ...products] });
+      }
+      setIsModalOpen(false);
+    } catch (e: any) {
+      alert("Erro ao salvar produto: " + e.message);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Tem certeza que deseja excluir este produto?")) return;
+    try {
+      await setDoc(doc(db, 'data', 'products'), { items: products.filter(p => p.id !== id) });
+    } catch (e: any) {
+      alert("Erro ao excluir: " + e.message);
+    }
+  };
+  
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-8">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-800">Produtos (Catálogo)</h2>
+          <p className="text-slate-500">Gerencie os produtos exibidos no portfólio.</p>
+        </div>
+        <button 
+          onClick={() => handleOpenModal()} 
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 font-medium"
+        >
+          <Plus className="w-5 h-5" />
+          Novo Produto
+        </button>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-50 border-b border-slate-200">
+                <th className="p-4 font-semibold text-slate-600">Produto</th>
+                <th className="p-4 font-semibold text-slate-600">Categoria</th>
+                <th className="p-4 font-semibold text-slate-600">Destaque</th>
+                <th className="p-4 font-semibold text-slate-600 text-center">Ações</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {products.map(p => (
+                <tr key={p.id} className="hover:bg-slate-50 transition-colors">
+                  <td className="p-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-lg overflow-hidden bg-slate-100 shrink-0">
+                        {p.imagens && p.imagens[0] ? (
+                           <img src={p.imagens[0]} alt={p.nome} className="w-full h-full object-cover" />
+                        ) : (
+                           <div className="w-full h-full flex items-center justify-center text-slate-400"><ImageIcon className="w-5 h-5" /></div>
+                        )}
+                      </div>
+                      <div>
+                        <div className="font-bold text-slate-900">{p.nome}</div>
+                        <div className="text-xs text-slate-500 truncate max-w-xs">{p.descricao_curta}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="p-4">
+                    <span className="bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-xs font-medium">
+                      {p.categoria}
+                    </span>
+                  </td>
+                  <td className="p-4">
+                    {p.destaque ? (
+                      <span className="text-amber-500 font-bold text-sm flex items-center gap-1">
+                        <Star className="w-4 h-4 fill-amber-500" /> Sim
+                      </span>
+                    ) : (
+                      <span className="text-slate-400 text-sm">Não</span>
+                    )}
+                  </td>
+                  <td className="p-4">
+                    <div className="flex items-center justify-center gap-2">
+                      <button onClick={() => handleOpenModal(p)} className="p-2 text-slate-400 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50">
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button onClick={() => handleDelete(p.id)} className="p-2 text-slate-400 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {products.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="p-8 text-center text-slate-500">Nenhum produto cadastrado.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <AnimatePresence>
+        {isModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4 overflow-y-auto"
+          >
+            <motion.div
+              initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }}
+              className="bg-white rounded-2xl shadow-xl w-full max-w-3xl overflow-hidden my-8"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex justify-between items-center p-6 border-b border-slate-100 sticky top-0 bg-white z-10">
+                <h2 className="text-2xl font-bold text-slate-800">
+                  {editingProduct ? 'Editar Produto' : 'Novo Produto'}
+                </h2>
+                <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors"><X className="w-6 h-6" /></button>
+              </div>
+
+              <div className="p-6 overflow-y-auto max-h-[70vh] space-y-6">
+                
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Nome do Produto *</label>
+                    <input type="text" value={nome} onChange={e => setNome(e.target.value)} className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Categoria *</label>
+                    <input type="text" value={categoria} onChange={e => setCategoria(e.target.value)} className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Descrição Curta *</label>
+                  <input type="text" value={descricaoCurta} onChange={e => setDescricaoCurta(e.target.value)} className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" placeholder="1 linha sobre o produto..." />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Descrição Completa</label>
+                  <textarea value={descricaoCompleta} onChange={e => setDescricaoCompleta(e.target.value)} rows={3} className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none"></textarea>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1 flex items-center gap-2">
+                    Links das Imagens (uma por linha)
+                  </label>
+                  <textarea value={imagensInput} onChange={e => setImagensInput(e.target.value)} rows={3} placeholder="https://exemplo...&#10;https://exemplo..." className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none text-sm"></textarea>
+                </div>
+                
+                <div className="grid md:grid-cols-3 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Especificações (uma por linha)</label>
+                    <textarea value={especificacoesInput} onChange={e => setEspecificacoesInput(e.target.value)} rows={3} className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none text-sm"></textarea>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Aplicações (uma por linha)</label>
+                    <textarea value={aplicacoesInput} onChange={e => setAplicacoesInput(e.target.value)} rows={3} className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none text-sm"></textarea>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Diferenciais (um por linha)</label>
+                    <textarea value={diferenciaisInput} onChange={e => setDiferenciaisInput(e.target.value)} rows={3} className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none text-sm"></textarea>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 bg-slate-50 p-4 rounded-lg border border-slate-100">
+                  <input type="checkbox" id="destaque" checked={destaque} onChange={e => setDestaque(e.target.checked)} className="w-5 h-5 rounded text-blue-600 focus:ring-blue-500/20 bg-white border-slate-300" />
+                  <label htmlFor="destaque" className="text-sm font-medium text-slate-700 cursor-pointer flex items-center gap-2">
+                    Destacar este produto no portfólio <Star className="w-4 h-4 text-amber-500" />
+                  </label>
+                </div>
+
+              </div>
+              <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-end gap-3 sticky bottom-0">
+                <button onClick={() => setIsModalOpen(false)} className="px-6 py-2.5 rounded-lg font-medium text-slate-600 hover:bg-slate-200 transition-colors">Cancelar</button>
+                <button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors shadow-sm">Salvar Produto</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 function Dashboard({ siteConfig, setSiteConfig }: { siteConfig: any, setSiteConfig: any }) {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('geral');
@@ -2229,11 +2879,11 @@ function Dashboard({ siteConfig, setSiteConfig }: { siteConfig: any, setSiteConf
           try { 
             const parsed = JSON.parse(saved);
             setOrders(parsed);
-            setDoc(doc(db, 'data', 'orders'), { items: parsed });
+            setDoc(doc(db, 'data', 'orders'), { items: parsed }).catch(console.error);
           } catch (e) {}
         }
       }
-    });
+    }, (error) => console.error("Error loading orders:", error));
 
     const unsubClients = onSnapshot(doc(db, 'data', 'clients'), (docSnap) => {
       if (docSnap.exists()) {
@@ -2244,18 +2894,18 @@ function Dashboard({ siteConfig, setSiteConfig }: { siteConfig: any, setSiteConf
           try { 
             const parsed = JSON.parse(saved);
             setClients(parsed);
-            setDoc(doc(db, 'data', 'clients'), { items: parsed });
+            setDoc(doc(db, 'data', 'clients'), { items: parsed }).catch(console.error);
           } catch (e) {}
         }
       }
       setLoading(false);
-    });
+    }, (error) => console.error("Error loading clients:", error));
 
     return () => {
       unsubOrders();
       unsubClients();
     };
-  }, []);
+  }, [user]);
 
   const handleSetOrders = (newOrders: any[] | ((prev: any[]) => any[])) => {
     setOrders(prev => {
@@ -2330,6 +2980,7 @@ function Dashboard({ siteConfig, setSiteConfig }: { siteConfig: any, setSiteConf
       case 'geral': return <TabGeral orders={orders} updateOrderStatus={updateOrderStatus} updateOrderPhases={updateOrderPhases} />;
       case 'orcamentos': return <TabOrcamentosList orders={orders} addOrder={addOrder} clients={clients} />;
       case 'simulador': return <TabSimulador />;
+      case 'produtos': return <TabProdutos />;
       case 'clientes': return <TabClientes clients={clients} setClients={handleSetClients} />;
       case 'instalacoes': return <TabInstalacoes orders={orders} />;
       case 'configuracoes': return <TabConfiguracoes siteConfig={siteConfig} setSiteConfig={setSiteConfig} />;
@@ -2341,6 +2992,7 @@ function Dashboard({ siteConfig, setSiteConfig }: { siteConfig: any, setSiteConf
     { id: 'geral', label: 'Painel Geral', icon: LayoutDashboard },
     { id: 'orcamentos', label: 'Orçamentos', icon: ClipboardList },
     { id: 'simulador', label: 'Simulador de Custos', icon: Calculator },
+    { id: 'produtos', label: 'Catálogo de Produtos', icon: Package },
     { id: 'clientes', label: 'Clientes & Histórico', icon: Users },
     { id: 'instalacoes', label: 'Gestão de Obras', icon: HardHat },
   ];
@@ -2536,6 +3188,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage siteConfig={siteConfig} />} />
+        <Route path="/produto/:id" element={<ProductPage siteConfig={siteConfig} />} />
         <Route path="/dashboard" element={<Dashboard siteConfig={siteConfig} setSiteConfig={handleUpdateSiteConfig} />} />
       </Routes>
     </BrowserRouter>
